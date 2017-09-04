@@ -116,15 +116,14 @@ abstract class OAuth2ResourceOwner
             ]
         ]);
 
-        $tokenData = json_decode($res->getBody()->getContents(), true);
-
-        $token = $this->fetchResponse($tokenData, $scopes);
+        $token = $this->fetchResponse($res->getBody()->getContents(), $scopes);
 
         return $token;
     }
 
     public function fetchResponse($tokenData, $scopes)
     {
+        $tokenData = json_decode($tokenData, true);
         $expireDate = null;
         if (isset($tokenData['expires_in'])) {
             $expireDate = new \DateTime();

@@ -3,6 +3,7 @@ This is a simple client for OAuth Services (W.I.P.)
 
 Currently supported services:
 - Google
+- GitHub
 - Dropbox
 - Battle.net
 
