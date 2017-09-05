@@ -5,9 +5,10 @@ Currently supported services:
 - Google
 - GitHub
 - Dropbox
+- Twitter
 - Battle.net
 
-More OAuth2 services and OAuth 1.0 support are coming soon
+More OAuth2 services coming soon
 
 ## Installation
 ```bash

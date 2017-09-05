@@ -19,6 +19,12 @@ class AccessToken
     protected $token = '';
 
     /**
+     * The Token Secret for OAuth 1.0
+     * @var string
+     */
+    protected $secret = '';
+
+    /**
      * The Token Type
      * @var string
      */
@@ -66,6 +72,24 @@ class AccessToken
     public function setToken($token)
     {
         $this->token = $token;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSecret()
+    {
+        return $this->secret;
+    }
+
+    /**
+     * @param string $secret
+     * @return AccessToken
+     */
+    public function setSecret($secret)
+    {
+        $this->secret = $secret;
         return $this;
     }
 

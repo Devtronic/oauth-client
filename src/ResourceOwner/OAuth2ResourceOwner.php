@@ -36,13 +36,13 @@ abstract class OAuth2ResourceOwner
     protected $authorizeUrl = '';
 
     /**
-     * The redirect URI for authorizing
+     * The redirect URL for authorizing
      * @var string
      */
     protected $redirectUrl = '';
 
     /**
-     * The URI for tokens
+     * The URL for tokens
      * @var string
      */
     protected $tokenUrl = '';
