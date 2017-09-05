@@ -5,6 +5,7 @@ Currently supported services:
 - Google
 - GitHub
 - Dropbox
+- PayPal
 - Twitter
 - Battle.net
 
