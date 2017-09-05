@@ -137,6 +137,10 @@ abstract class OAuth2ResourceOwner
             ->setToken($tokenData['access_token'])
             ->setExpires($expireDate);
 
+        if (isset($tokenData['refresh_token'])) {
+            $token->setRefreshToken($tokenData['refresh_token']);
+        }
+
         return $token;
     }
 

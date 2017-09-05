@@ -36,6 +36,12 @@ class AccessToken
      */
     protected $scopes = [];
 
+    /**
+     * The Refresh Token
+     * @var string
+     */
+    protected $refreshToken = '';
+
     public function isValid($checkDate = null)
     {
         if ($checkDate == null) {
@@ -114,6 +120,24 @@ class AccessToken
     public function setScopes($scopes)
     {
         $this->scopes = $scopes;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getRefreshToken()
+    {
+        return $this->refreshToken;
+    }
+
+    /**
+     * @param string $refreshToken
+     * @return AccessToken
+     */
+    public function setRefreshToken($refreshToken)
+    {
+        $this->refreshToken = $refreshToken;
         return $this;
     }
 }
