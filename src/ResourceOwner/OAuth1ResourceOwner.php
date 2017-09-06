@@ -45,7 +45,6 @@ abstract class OAuth1ResourceOwner
      */
     protected $accessTokenUrl = '';
 
-
     /**
      * The redirect URL for authorizing
      * @var string
@@ -53,12 +52,12 @@ abstract class OAuth1ResourceOwner
     protected $redirectUrl = '';
 
     /**
-     * The available scopes
-     * Key = Scope name, Value = Description
-     * @var array
+     * Instantiates a new OAuth 1.0 Resource Owner
+     *
+     * @param string $consumerKey The Consumer Key
+     * @param string $consumerSecret The Consumer Secret
+     * @param string $redirectUrl The Redirect URL
      */
-    protected $scopes = [];
-
     public function __construct($consumerKey, $consumerSecret, $redirectUrl)
     {
         $this->consumerKey = $consumerKey;
@@ -66,31 +65,26 @@ abstract class OAuth1ResourceOwner
         $this->redirectUrl = $redirectUrl;
     }
 
+    /**
+     * Returns the URL for authorization
+     *
+     * @return string The authorization URL
+     */
     public function getAuthorizeUrl()
     {
-        $authParameters = [
-            'oauth_consumer_key' => $this->consumerKey,
-            'oauth_signature_method' => "HMAC-SHA1",
-            'oauth_timestamp' => time(),
-            'oauth_nonce' => substr(md5(uniqid()), 0, 6),
-            'oauth_version' => "1.0",
-        ];
-
+        $authParameters = [];
         if ($this->redirectUrl != '') {
             $authParameters['oauth_callback'] = $this->redirectUrl;
         }
 
-        $authParameters['oauth_signature'] = $this->getSignature(
-            'GET',
-            $this->requestTokenUrl,
-            $authParameters,
-            ''
-        );
-
         $client = new Client(['verify' => false]);
         $res = $client->request('GET', $this->requestTokenUrl, [
             'headers' => [
-                'Authorization' => 'OAuth ' . $this->buildOAuthHeader($authParameters)
+                'Authorization' => $this->getAuthorizationHeader(
+                    'GET',
+                    $this->requestTokenUrl,
+                    $authParameters
+                ),
             ]
         ]);
 
@@ -102,33 +96,31 @@ abstract class OAuth1ResourceOwner
             ]);
     }
 
-    public function getAccessToken($oAuthToken, $oAuthVerifier)
+    /**
+     * Requests and returns the AccessToken
+     *
+     * @param string $requestToken The oauth_token from the request_token Call (getAuthorizeUrl)
+     * @param string $oAuthVerifier The oauth_verifier from the request_token Call (getAuthorizeUrl)
+     * @return AccessToken The AccessToken
+     */
+    public function getAccessToken($requestToken, $oAuthVerifier)
     {
+        $token = new AccessToken();
+        $token->setToken($requestToken);
+
         $authParameters = [
-            'oauth_consumer_key' => $this->consumerKey,
-            'oauth_signature_method' => "HMAC-SHA1",
-            'oauth_timestamp' => time(),
-            'oauth_nonce' => substr(md5(uniqid()), 0, 6),
-            'oauth_version' => "1.0",
-            'oauth_token' => $oAuthToken,
             'oauth_verifier' => $oAuthVerifier,
         ];
-
-        if ($this->redirectUrl != '') {
-            $authParameters['oauth_callback'] = $this->redirectUrl;
-        }
-
-        $authParameters['oauth_signature'] = $this->getSignature(
-            'POST',
-            $this->accessTokenUrl,
-            $authParameters,
-            ''
-        );
 
         $client = new Client(['verify' => false]);
         $res = $client->request('POST', $this->accessTokenUrl, [
             'headers' => [
-                'Authorization' => 'OAuth ' . $this->buildOAuthHeader($authParameters)
+                'Authorization' => $this->getAuthorizationHeader(
+                    'POST',
+                    $this->accessTokenUrl,
+                    $authParameters,
+                    $token
+                )
             ],
             'form_params' => [
                 'oauth_verifier' => $oAuthVerifier,
@@ -137,7 +129,6 @@ abstract class OAuth1ResourceOwner
 
         $tokenResult = [];
         parse_str($res->getBody()->getContents(), $tokenResult);
-
 
         $token = new AccessToken();
         $token
@@ -148,7 +139,59 @@ abstract class OAuth1ResourceOwner
         return $token;
     }
 
-    public function getSignature($requestMethod, $url, $parameters, $oAuthTokenSecret)
+    /**
+     * Returns the OAuth 1.0 header string
+     *
+     * @param string $requestMethod The Request Method
+     * @param string $url The requested URL
+     * @param array $parameters The Parameters ($name => $value)
+     * @param AccessToken|null $token The AccessToken
+     * @return string The Header (OAuth oauth_consumer_key="foobar", ...)
+     */
+    public function getAuthorizationHeader($requestMethod, $url, $parameters, $token = null)
+    {
+        $requestMethod = strtoupper($requestMethod);
+
+        if (!is_array($parameters)) {
+            $parameters = [$parameters];
+        }
+        $parameters = array_merge($parameters, [
+            'oauth_consumer_key' => $this->consumerKey,
+            'oauth_signature_method' => "HMAC-SHA1",
+            'oauth_timestamp' => time(),
+            'oauth_nonce' => substr(md5(uniqid()), 0, 6),
+            'oauth_version' => "1.0",
+        ]);
+        if ($token != null) {
+            $parameters['oauth_token'] = $token->getToken();
+        }
+
+        $secret = '';
+        if ($token != null && $token instanceof AccessToken) {
+            $secret = $token->getSecret();
+        }
+
+        $parameters['oauth_signature'] = $this->getSignature(
+            $requestMethod,
+            $url,
+            $parameters,
+            $secret
+        );
+
+        return 'OAuth ' . $this->buildOAuthHeaderString($parameters);
+    }
+
+    /**
+     * Calculates the signature of the request
+     *
+     * @param string $requestMethod The request method
+     * @param string $url The URL
+     * @param array $parameters The request Parameters
+     * @param string $oAuthTokenSecret The OAuth Token secret (can be empty for request_token calls)
+     *
+     * @return string The Signature
+     */
+    protected function getSignature($requestMethod, $url, $parameters, $oAuthTokenSecret)
     {
         // Build the parameter string
         $outParams = [];
@@ -171,12 +214,21 @@ abstract class OAuth1ResourceOwner
         return base64_encode(hash_hmac('sha1', $payload, $signingKey, true));
     }
 
-    public function buildOAuthHeader($parameters)
+    /**
+     * Builds the OAuth header String
+     *
+     * @param array $parameters All parameters
+     * @return string The header string
+     */
+    public function buildOAuthHeaderString($parameters)
     {
         $out = [];
         foreach ($parameters as $name => $value) {
-            $out[] = sprintf('%s="%s"', rawurlencode($name), rawurlencode($value));
+            if (substr($name, 0, 6) == 'oauth_') {
+                $out[] = sprintf('%s="%s"', rawurlencode($name), rawurlencode($value));
+            }
         }
+
         return implode(',', $out);
     }
 }
