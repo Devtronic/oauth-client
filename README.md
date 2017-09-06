@@ -57,8 +57,8 @@ OAuth 1.0
 <?php
 
 $ro = new \Devtronic\OAuth\ResourceOwner\TwitterResourceOwner(
-    $customerKey = '<your-customer-key>',
-    $customerSecret = '<your-customer-secret>',
+    $consumerKey = '<your-consumer-key>',
+    $consumerSecret = '<your-consumer-secret>',
     $redirectUrl = '<your-redirect-url>' # This script for example
 );
 
