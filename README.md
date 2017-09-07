@@ -8,6 +8,7 @@ Currently included services:
 - GitHub
 - Google
 - PayPal
+- Slack
 - Twitter
 
 More OAuth2 services coming soon
