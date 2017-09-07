@@ -81,4 +81,26 @@ class SlackResourceOwner extends OAuth2ResourceOwner
         'users:read.email' => 'View email addresses of people on your workspace',
         'users:write' => 'Modify your profile information',
     ];
+
+    /** {@inheritdoc} */
+    public function fetchResponse($tokenData, $scopes)
+    {
+        $token = parent::fetchResponse($tokenData, $scopes);
+
+        switch (substr($token->getToken(), 0, 4)) {
+            case 'xoxp':
+                $token->setType('user');
+                break;
+            case 'xoxb':
+                $token->setType('bot');
+                break;
+            case 'xoxa':
+                $token->setType('workspace');
+                break;
+            default:
+                break;
+        }
+
+        return $token;
+    }
 }
