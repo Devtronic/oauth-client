@@ -1,13 +1,14 @@
 # OAuth Client
 This is a simple client for OAuth Services (W.I.P.)
 
-Currently supported services:
-- Google
-- GitHub
+Currently included services:
+- Battle.net
 - Dropbox
+- Facebook
+- GitHub
+- Google
 - PayPal
 - Twitter
-- Battle.net
 
 More OAuth2 services coming soon
 
