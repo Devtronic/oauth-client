@@ -8,6 +8,7 @@ Currently included services:
 - GitHub
 - Google
 - PayPal
+- Shopify
 - Slack
 - Twitter
 

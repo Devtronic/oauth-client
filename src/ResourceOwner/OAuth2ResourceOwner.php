@@ -54,6 +54,12 @@ abstract class OAuth2ResourceOwner
      */
     protected $scopes = [];
 
+    /**
+     * The character for imploding the scopes. In most cases this is a space
+     * @var string
+     */
+    protected $scopeSeparator = ' ';
+
     public function __construct($clientId, $clientSecret, $redirectUrl)
     {
         $this->clientId = $clientId;
@@ -78,7 +84,7 @@ abstract class OAuth2ResourceOwner
 
         return sprintf('%s?%s', $this->authorizeUrl, http_build_query([
             'client_id' => $this->clientId,
-            'scope' => implode(' ', $scopes),
+            'scope' => implode($this->scopeSeparator, $scopes),
             'state' => substr(md5(uniqid()), 0, 8),
             'redirect_uri' => $this->redirectUrl,
             'response_type' => 'code'
@@ -104,7 +110,7 @@ abstract class OAuth2ResourceOwner
         ];
 
         if (count($scopes) > 0) {
-            $params['scope'] = implode(' ', $scopes);
+            $params['scope'] = implode($this->scopeSeparator, $scopes);
         }
 
         /** @throws ClientException */
