@@ -113,6 +113,8 @@ abstract class OAuth2ResourceOwner
             $params['scope'] = implode($this->scopeSeparator, $scopes);
         }
 
+        $params = $this->handleGetAccessTokenParameters($params);
+
         /** @throws ClientException */
         $res = $client->post($this->tokenUrl, [
             'form_params' => $params,
@@ -151,6 +153,17 @@ abstract class OAuth2ResourceOwner
         }
 
         return $token;
+    }
+
+    /**
+     * Handles the parameters before the getAccessToken-Request
+     *
+     * @param array $parmeters The Parameters
+     * @return array The Parameters
+     */
+    public function handleGetAccessTokenParameters($parmeters)
+    {
+        return $parmeters;
     }
 
     public function getScopes()
