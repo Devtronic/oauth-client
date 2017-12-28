@@ -7,6 +7,7 @@ Currently included services:
 - Facebook
 - GitHub
 - Google
+- Instagram
 - PayPal
 - Shopify
 - Slack
